@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$MesaServe - Cafetería Minimalista</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+        /* Custom colors for Tailwind config simulation */
+        .bg-primary { background-color: #007AFF; }
+        .text-primary { color: #007AFF; }
+        .hover\:bg-primary-dark:hover { background-color: #0056b3; }
+        .bg-secondary { background-color: #34D399; }
+        .text-secondary { color: #34D399; }
+        .hover\:bg-secondary-dark:hover { background-color: #2aa779; }
+        .border-primary { border-color: #007AFF; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- =========== MAIN CONTAINER =========== -->
+    <div id="app" class="max-w-4xl mx-auto p-4 md:p-6">
+
+        <!-- =========== CLIENT VIEW (/menu) =========== -->
+        <div id="client-view">
+            <header class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-slate-900">$MesaServe</h1>
+                <p class="text-slate-500 mt-1">Tu café, a un clic de distancia.</p>
+            </header>
+
+            <!-- Status Section -->
+            <div id="client-status-container" class="mb-8 p-4 bg-white rounded-lg shadow-sm border border-slate-200 text-center hidden">
+                 <h3 class="text-lg font-semibold text-slate-700">Estado de tu Pedido</h3>
+                 <p id="client-status-text" class="mt-1 text-primary font-medium"></p>
+            </div>
+            
+            <!-- Menu Section -->
+            <div>
+                <h2 class="text-2xl font-bold mb-4 border-b pb-2">Nuestro Menú</h2>
+                <div id="menu-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Menu items will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== ADMIN VIEW (/admin) =========== -->
+        <div id="admin-view" class="hidden">
+             <header class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-slate-200 mb-8">
+                <h1 class="text-2xl font-bold text-slate-900">Panel de Admin</h1>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </header>
+            <div class="space-y-4">
+                 <button id="edit-menu-btn" class="w-full text-left p-4 bg-white hover:bg-slate-100 rounded-lg shadow-sm border transition-all">
+                    <h3 class="text-lg font-semibold">Editar Menú</h3>
+                    <p class="text-slate-500">Actualiza productos, precios e imágenes.</p>
+                </button>
+                 <button onclick="MapsTo('kitchen-view')" class="w-full text-left p-4 bg-white hover:bg-slate-100 rounded-lg shadow-sm border transition-all">
+                    <h3 class="text-lg font-semibold">Ver Cocina / Barra</h3>
+                    <p class="text-slate-500">Monitorea los pedidos pendientes en tiempo real.</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- =========== KITCHEN VIEW (/kitchen) =========== -->
+        <div id="kitchen-view" class="hidden">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-slate-900">Vista de Cocina / Barra</h1>
+                <p class="text-slate-500 mt-1">Pedidos pendientes por preparar.</p>
+            </header>
+            
+            <div id="kitchen-orders-container" class="space-y-4">
+                <!-- Kitchen orders will be injected here -->
+            </div>
+        </div>
+
+        <!-- =========== NAVIGATION FOOTER FOR DEMO =========== -->
+        <footer class="mt-12 text-center text-sm text-slate-400 border-t pt-4">
+            <p>$MesaServe MVP</p>
+            <nav class="space-x-4 mt-2">
+                <button class="bg-transparent text-slate-400 hover:text-primary" onclick="MapsTo('client-view')">Cliente</button>
+                <button class="bg-transparent text-slate-400 hover:text-primary" onclick="MapsTo('kitchen-view')">Cocina</button>
+                <button class="bg-transparent text-slate-400 hover:text-primary" onclick="MapsTo('admin-view')">Admin</button>
+            </nav>
+        </footer>
+    </div>
+
+    <!-- =========== JAVASCRIPT LOGIC =========== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- DATA & STATE MANAGEMENT ---
+            const APP_PREFIX = '$MesaServe_';
+            const MENU_KEY = `${APP_PREFIX}menu`;
+            const ORDERS_KEY = `${APP_PREFIX}orders`;
+
+            // Initial menu data
+            const placeholderSvg = `data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3e%3crect fill='%23e2e8f0' width='100%25' height='100%25'/%3e%3ctext fill='%2394a3b8' font-family='sans-serif' font-size='3rem' dominant-baseline='middle' text-anchor='middle' x='50%25' y='50%25'%3e☕%3c/text%3e%3c/svg%3e`;
+            const MENU_DATA = [
+                { id: 1, name: 'Café Americano', price: 2.50, image: placeholderSvg },
+                { id: 2, name: 'Latte', price: 3.50, image: placeholderSvg },
+                { id: 3, name: 'Pan de Elote', price: 2.75, image: placeholderSvg }
+            ];
+
+            // --- CORE FUNCTIONS ---
+
+            // Simple router/view manager
+            window.MapsTo = (viewId) => {
+                document.querySelectorAll('#app > div').forEach(view => view.classList.add('hidden'));
+                document.getElementById(viewId).classList.remove('hidden');
+                
+                // Refresh data on view change
+                if (viewId === 'kitchen-view') renderKitchenOrders();
+                if (viewId === 'client-view') renderClientStatus();
+            };
+
+            // Get data from localStorage
+            const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+            
+            // Set data to localStorage
+            const setData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+
+            // --- RENDER FUNCTIONS ---
+            
+            function renderMenu() {
+                const menu = getData(MENU_KEY);
+                const container = document.getElementById('menu-container');
+                if (!container) return;
+                
+                container.innerHTML = menu.map(item => `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-xl font-semibold">${item.name}</h3>
+                            <p class="text-slate-500 mt-1">$${item.price.toFixed(2)}</p>
+                            <button data-item-id="${item.id}" class="order-btn mt-4 w-full bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors">
+                                Pedir
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function renderKitchenOrders() {
+                const orders = getData(ORDERS_KEY);
+                const menu = getData(MENU_KEY);
+                const container = document.getElementById('kitchen-orders-container');
+                if (!container) return;
+
+                const pendingOrders = orders.filter(o => o.status === 'pending');
+                
+                if (pendingOrders.length === 0) {
+                    container.innerHTML = `<p class="text-center text-slate-500 bg-white p-6 rounded-lg shadow-sm">No hay pedidos pendientes. ¡Todo listo!</p>`;
+                    return;
+                }
+                
+                container.innerHTML = pendingOrders.map(order => {
+                    const menuItem = menu.find(item => item.id === order.itemId);
+                    return `
+                        <div class="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between border-l-4 border-primary">
+                            <div>
+                                <h4 class="text-lg font-bold">${menuItem.name}</h4>
+                                <p class="text-sm text-slate-400">Pedido #${order.id.toString().slice(-4)} - ${new Date(order.timestamp).toLocaleTimeString()}</p>
+                            </div>
+                            <button data-order-id="${order.id}" class="complete-order-btn bg-secondary text-white font-bold py-2 px-5 rounded-lg hover:bg-secondary-dark transition-colors">
+                                Listo
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            function renderClientStatus() {
+                // For this MVP, we'll check if there's ANY pending order.
+                const orders = getData(ORDERS_KEY);
+                const pendingOrder = orders.find(o => o.status === 'pending');
+                
+                const statusContainer = document.getElementById('client-status-container');
+                const statusText = document.getElementById('client-status-text');
+
+                if (pendingOrder) {
+                    statusContainer.classList.remove('hidden');
+                    statusText.textContent = `Tu pedido fue enviado a la cocina. ¡Pronto estará listo!`;
+                } else {
+                    // Check for a recently completed order
+                    const lastCompletedOrder = orders
+                        .filter(o => o.status === 'completed')
+                        .sort((a, b) => b.timestamp - a.timestamp)[0];
+                    
+                    if(lastCompletedOrder) {
+                        statusContainer.classList.remove('hidden');
+                        statusText.textContent = `¡Tu último pedido está listo para recoger!`;
+                    } else {
+                        statusContainer.classList.add('hidden');
+                    }
+                }
+            }
+
+
+            // --- EVENT LISTENERS ---
+
+            document.addEventListener('click', (e) => {
+                // Order button clicked
+                if (e.target.matches('.order-btn')) {
+                    const itemId = parseInt(e.target.dataset.itemId, 10);
+                    const orders = getData(ORDERS_KEY);
+                    const newOrder = {
+                        id: Date.now(),
+                        itemId: itemId,
+                        status: 'pending',
+                        timestamp: Date.now()
+                    };
+                    setData(ORDERS_KEY, [...orders, newOrder]);
+                    alert('¡Pedido enviado a la cocina!');
+                    renderClientStatus();
+                }
+
+                // Complete order button clicked
+                if (e.target.matches('.complete-order-btn')) {
+                    const orderId = parseInt(e.target.dataset.orderId, 10);
+                    let orders = getData(ORDERS_KEY);
+                    orders = orders.map(order => 
+                        order.id === orderId ? { ...order, status: 'completed' } : order
+                    );
+                    setData(ORDERS_KEY, orders);
+                    renderKitchenOrders();
+                }
+
+                // Edit menu button
+                if (e.target.closest('#edit-menu-btn')) {
+                     alert('Función de Edición Futura. ¡Próximamente podrás gestionar tu menú desde aquí!');
+                }
+            });
+
+
+            // --- INITIALIZATION ---
+            function initializeApp() {
+                // Populate menu if it doesn't exist in localStorage
+                if (!localStorage.getItem(MENU_KEY)) {
+                    setData(MENU_KEY, MENU_DATA);
+                }
+                
+                // Initial renders
+                renderMenu();
+                renderClientStatus();
+                // We don't render kitchen by default, only when navigating to it.
+            }
+            
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
